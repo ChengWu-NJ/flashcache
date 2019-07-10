@@ -279,7 +279,12 @@ dm_io_async_pagelist_IO(struct flashcache_copy_job *job,
 {
 	struct dm_io_request iorq;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)  /*v4.18*/
 	iorq.bi_rw = rw;
+#else
+	iorq.bi_op = rw;
+	iorq.bi_op_flags = 0;
+#endif
 	iorq.mem.type = DM_IO_PAGE_LIST;
 	iorq.mem.ptr.pl = pl;
 	iorq.mem.offset = 0;

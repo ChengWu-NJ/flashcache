@@ -1,3 +1,12 @@
+Restart to update codes to adapt the newest linux kernel.     Cheng Wu July 10, 2019
+-----------------------
+update: 
+July 11, 2019 --- v4.18 --- adapt to redhat 8.0 (kernel 4.18) and centos 7.4 (kernel 3.10 but using wait.h 3.17, bitops.h 3.16 etc. ). set version to v4.18 to correspond with linux kernel version.
+
+
+
+----------------------------------------------------------------------------------------
+Fork from https://github.com/facebookarchive/flashcache on July 10, 2019
 -------------------
 This project is not actively maintained. Proceed at your own risk!_**
 -------------------

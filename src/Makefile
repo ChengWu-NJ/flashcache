@@ -1,45 +1,23 @@
-COMMIT_REV ?= $(shell git describe  --always --abbrev=12)
+# NOTICE: only tested in redhat 8.0/ centos 7.4
+
 KERNEL_SOURCE_VERSION ?= $(shell uname -r)
 KERNEL_TREE ?= /lib/modules/$(KERNEL_SOURCE_VERSION)/build
 
+COMMIT_REV ?= $(shell git describe  --always --abbrev=12)
 EXTRA_CFLAGS += -I$(KERNEL_TREE)/drivers/md -I./ -DCOMMIT_REV="\"$(COMMIT_REV)\""
+#EXTRA_CFLAGS += -I$(KERNEL_TREE)/drivers/md -I./
 EXTRA_CFLAGS += -I$(KERNEL_TREE)/include/ -I$(KERNEL_TREE)/include/linux 
 
-# Check for RHEL/CentOS
-RHEL5_VER ?= $(shell  if [ -e /etc/redhat-release ]; then grep " 5\\.[0-9]" /etc/redhat-release; else false; fi)
-RHEL5_SETUP :=
-ifneq "$(RHEL5_VER)" ""
-	RHEL5_SETUP := rhel5-setup
-	RHEL5_SPEC := /usr/src/redhat/SPECS/kernel.spec
-	RHEL5_TREE := /usr/src/redhat/BUILD/kernel-2.6.18/linux-$(shell uname -r).$(shell uname -i)
-	RHEL5_SRC := /usr/src/kernels/$(shell uname -r)-$(shell uname -i)
-	KERNEL_TREE := $(RHEL5_TREE)
-endif
-
-# Check for RHEL/CentOS 7
-RHEL7_VER ?= $(shell if [ -e /etc/redhat-release ]; then grep " 7\\.[0-9]" /etc/redhat-release; else false; fi)
-ifneq "$(RHEL7_VER)" ""
-        RHEL7_TREE := /usr/src/kernels/$(shell uname -r)
-        KERNEL_TREE := $(RHEL7_TREE)
-endif
-
-# Check for OpenVZ (/proc/vz)
-OPENVZ_VER ?= $(shell if [ -e /proc/vz ]; then grep 5.[0-9] /etc/redhat-release; else false; fi)
-ifneq "$(OPENVZ_VER)" ""
-        RHEL5_SPEC := /usr/src/redhat/SPECS/kernel-ovz.spec
-        RHEL5_TREE := /usr/src/redhat/BUILD/ovzkernel-2.6.18/linux-$(shell uname -r).$(shell uname -i)
-        KERNEL_TREE := $(RHEL5_TREE)
-endif
-
 obj-m += flashcache.o
-flashcache-objs := flashcache_conf.o flashcache_main.o flashcache_subr.o flashcache_ioctl.o flashcache_procfs.o flashcache_reclaim.o flashcache_kcopy.o
+flashcache-objs := flashcache_conf.o flashcache_main.o flashcache_subr.o flashcache_ioctl.o flashcache_procfs.o flashcache_kcopy.o flashcache_reclaim.o
 
 .PHONY: all
 all: modules utils
 
 .PHONY:    modules
-modules: $(RHEL5_SETUP)
+modules:
 	make -C $(KERNEL_TREE) M=$(PWD) modules V=0
+	#make CC=clang CFLANGS=-O3 -C $(KERNEL_TREE) M=$(PWD) modules V=0
 
 .PHONY:    utils
 utils:

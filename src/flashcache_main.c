@@ -76,7 +76,7 @@
  * cache read miss.
  */
 
-#define FLASHCACHE_SW_VERSION "flashcache-3.1.1"
+#define FLASHCACHE_SW_VERSION "flashcache-4.18"    /* v4.18 ** change 3.1.1 to 4.18 ***/
 char *flashcache_sw_version = FLASHCACHE_SW_VERSION;
 
 static void flashcache_read_miss(struct cache_c *dmc, struct bio* bio,
@@ -116,7 +116,12 @@ int dm_io_async_bvec_pl(unsigned int num_regions,
 {
 	struct dm_io_request iorq;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)   /*v4.18*/
 	iorq.bi_rw = rw;
+#else
+	iorq.bi_op = rw;
+	iorq.bi_op_flags = 0;
+#endif
 	iorq.mem.type = DM_IO_PAGE_LIST;
 	iorq.mem.ptr.pl = pl;
 	iorq.mem.offset = 0;
@@ -140,7 +145,12 @@ int dm_io_async_bvec(unsigned int num_regions,
 {
 	struct dm_io_request iorq;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)  /*v4.18*/
 	iorq.bi_rw = rw;
+#else
+	iorq.bi_op = rw;
+	iorq.bi_op_flags = 0;
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
 	iorq.mem.type = DM_IO_BIO;
 	iorq.mem.ptr.bio = bio;	
@@ -333,8 +343,10 @@ flashcache_io_callback(unsigned long error, void *context)
 				 * the IO to succeed as long as the disk write suceeded.
 				 * and invalidate the cache block.
 				 */
+			{   /*v4.18*/
 			        disk_error = -EIO;
 				dmc->flashcache_errors.disk_write_errors++;
+			}
 		}
 		break;
 	}
@@ -2052,7 +2064,11 @@ flashcache_write(struct cache_c *dmc, struct bio *bio)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37)
 #define bio_barrier(bio)        ((bio)->bi_rw & REQ_HARDBARRIER)
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)  /*4.18*/
 #define bio_barrier(bio)        ((bio)->bi_rw & REQ_FLUSH)
+#else
+#define bio_barrier(bio)       ((bio)->bi_opf & REQ_PREFLUSH)
+#endif
 #endif
 #endif
 #endif

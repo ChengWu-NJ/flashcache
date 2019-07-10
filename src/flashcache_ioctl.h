@@ -51,10 +51,16 @@ enum {
 #define FLASHCACHEDELALLWHITELIST	_IOW(FLASHCACHE_IOCTL, FLASHCACHEDELWHITELISTALL_CMD, pid_t)
 
 #ifdef __KERNEL__
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,0)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,0) || (defined(RHEL_RELEASE_CODE) && (RHEL_RELEASE_CODE >= 1795)) )  /*v4.18---1795=rhel7.3*/
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,16,0)  /*v4.18*/
 int flashcache_message(struct dm_target *ti, unsigned argc, char **argv);
 int flashcache_prepare_ioctl(struct dm_target *ti,
                              struct block_device **bdev, fmode_t *mode);
+#else
+int flashcache_message(struct dm_target *ti, unsigned argc, char **argv,
+                       char *result, unsigned maxlen);
+int flashcache_prepare_ioctl(struct dm_target *ti, struct block_device **bdev);
+#endif
 #else
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,27)
 int flashcache_ioctl(struct dm_target *ti, struct inode *inode,

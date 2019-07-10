@@ -41,7 +41,7 @@
 #include <linux/types.h>
 #include <flashcache.h>
 
-#undef COMMIT_REV
+// #undef COMMIT_REV  /*v4.18*/
 
 void
 usage(char *pname)

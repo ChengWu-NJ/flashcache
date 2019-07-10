@@ -739,7 +739,11 @@ flashcache_bio_endio(struct bio *bio, int error,
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(4,3,0)
 	bio_endio(bio, error);
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,13,0)    /*v4.18*/
 	bio->bi_error = error;
+#else
+	bio->bi_status = errno_to_blk_status(error);
+#endif
 	bio_endio(bio);
 #endif	
 }
@@ -848,7 +852,12 @@ flashcache_dm_io_async_vm(struct cache_c *dmc, unsigned int num_regions,
 	unsigned long error_bits = 0;
 	int error;
 	struct dm_io_request io_req = {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)  /*v4.18*/
 		.bi_rw = rw,
+#else
+		.bi_op = rw,
+		.bi_op_flags = 0,
+#endif
 		.mem.type = DM_IO_VMA,
 		.mem.ptr.vma = data,
 		.mem.offset = 0,
@@ -936,7 +945,12 @@ flashcache_dm_io_sync_vm(struct cache_c *dmc, struct dm_io_region *where, int rw
 	unsigned long error_bits = 0;
 	int error;
 	struct dm_io_request io_req = {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0) /*v4.18*/
 		.bi_rw = rw,
+#else
+		.bi_op = rw,
+		.bi_op_flags = 0,
+#endif
 		.mem.type = DM_IO_VMA,
 		.mem.ptr.vma = data,
 		.mem.offset = 0,
